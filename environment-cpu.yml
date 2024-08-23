@@ -1,0 +1,13 @@
+name: dfsr
+channels:
+  - defaults
+  - open3d-admin
+dependencies:
+  - numpy=1.19.1=py37hbc911f0_0
+  - open3d=0.10.0=py37_0
+  - pillow=7.2.0=py37hb39fc2d_0
+  - pip=20.2.2=py37_0
+  - python=3.7.9=h7579374_0
+  - scikit-learn=0.23.2=py37h0573a6f_0
+  - scipy=1.5.2=py37h0b6359f_0
+      
