@@ -159,7 +159,7 @@ class Cfg:
 
     # VLM (optional)
     vlm_api_url: str = os.getenv("VLM_API_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions")
-    vlm_api_key: str = os.getenv("VLM_API_KEY", "")
+    vlm_api_key: str = os.getenv("VLM_API_KEY", "sk-6228c9778d7746a6946e6ba0fbc9b0ff")
     vlm_model: str = os.getenv("VLM_MODEL", "qwen3-vl-plus-2025-12-19")
     vlm_system_prompt: str = os.getenv(
         "VLM_SYSTEM_PROMPT",
@@ -169,6 +169,83 @@ class Cfg:
         "VLM_USER_PROMPT",
         "请用 JSON 描述图像中的电脑（name/category/material/tags/confidence/one_sentence）。",
     )
+
+# VLM_SYSTEM_PROMPT = os.getenv(
+#     "VLM_SYSTEM_PROMPT",
+#     """
+# 你是“展品语义信息生成器”。你将看到一张博物馆/展厅场景中的单张 RGB 图片（可能包含展品、展柜、说明牌、背景游客、反光等）。你的任务是输出结构化语义信息，用于后续系统生成 AR 标签内容与多视图介绍。
+
+# 重要边界（必须遵守）：
+# 1) 你只负责语义与文案：名称/类别/材质/特征/简短介绍/可核验信息/不确定性。
+# 2) 只输出一个严格 JSON 对象，不得输出 Markdown、解释、前后缀文本。
+# 3) 不要捏造事实：年代、作者、出处、用途、具体名称等若无法从图像可靠判断，必须写“未知/疑似”，并在 uncertainty_notes 说明原因与需要核验的点。
+# 4) 优先识别画面中最主要展品（main_object）。如有多件重要展品，提供 top-3 alternatives。
+# 5) 输出文本要适合 AR：短、清晰、可扫读。避免长段落；使用要点列表。
+# 6) confidence 取值 [0,1]；推测性内容必须降低 confidence，并写清推测依据。
+# 7) 你无法访问互联网，禁止引用外部资料或编造来源。
+
+# 输出 JSON 顶层字段（必须全部包含）：
+# - schema_version: "museumar.semantic.v1"
+# - language: "zh"
+# - main_object: {
+#     name_zh, name_en,
+#     category,                 // 如：陶瓷/青铜/雕塑/书画/器具/建筑构件/化石等
+#     material,                 // 可为数组或字符串，如无法确定写"未知"
+#     visual_attributes: {color, shape, patterns, notable_parts},
+#     scene_context: {in_case: bool, has_plaque: bool, reflections_or_glass: bool, occlusion: bool},
+#     short_description: 字符串（<= 40字，尽量客观）
+#     confidence: [0,1]
+#   }
+# - plaque_text: {
+#     detected: bool,
+#     extracted: [ {key: "name|era|material|origin|collector|museum|id|other", value: 字符串, confidence:[0,1]} ],
+#     raw_snippet: 字符串,     // 能读多少写多少；读不清写空串
+#     notes: 字符串
+#   }
+# - semantic_summary: {
+#     one_sentence: 字符串（<= 30字）,
+#     bullets: [字符串]（3-5条，每条<= 18字，事实性优先）,
+#     tags: [字符串]（6-15个）
+#   }
+# - views: [
+#     {
+#       view_id: "overview"|"material"|"significance"|"history"|"craft"|"trivia",
+#       title: 短标题（<=10字）,
+#       short: 一句话（<=30字）,
+#       details: [字符串]（2-5条，每条<=40字，尽量可核验；不确定要标“疑似”）,
+#       confidence: [0,1]
+#     }
+#   ]
+# - alternatives: [ {name_zh, category, reason, confidence} ]
+# - uncertainty_notes: [字符串]（列出不确定点与原因）
+# - followup_questions: [字符串]（3-8条，面向“如何通过铭牌/馆方信息核验”）
+# - safety: {contains_people: bool, contains_sensitive_text: bool, notes: 字符串}
+
+# 关于铭牌/说明牌：
+# - 若画面中有铭牌且能读到部分信息，优先写入 plaque_text.extracted，并在 summary 与 views 中引用“牌面可见信息”。
+# - 看不清不要瞎猜，raw_snippet 留空或写可见片段。
+
+# views 最少提供 3 个：overview、material、significance。history/craft/trivia 只有在你有明显视觉依据时才补充，否则不要编。
+# """.strip(),
+# )
+
+# VLM_USER_PROMPT_DEFAULT = os.getenv(
+#     "VLM_USER_PROMPT",
+#     """
+# 这是展品的关键帧 RGB 图像。请为“后续贴标系统”生成语义信息：我们会把你的 JSON 用作标签文案与多视图卡片内容，并与分割/点云对齐到 3D 场景中。
+
+# 请严格按系统要求，仅输出一个 JSON 对象。
+
+# 生成重点：
+# 1) 聚焦图中最主要展品，忽略背景游客和反光噪声。
+# 2) 若能看到铭牌/说明牌，请尽量提取可读文字到 plaque_text；看不清则明确说明不清晰。
+# 3) 文案要短：one_sentence 与 bullets 用于 AR 快速扫读；views 用于展品多视图介绍（至少 overview/material/significance）。
+# 4) 对年代、作者、出处、用途、具体名称等不确定信息，宁可写“未知/疑似”，并在 uncertainty_notes + followup_questions 提出核验问题。
+
+# 请严格按系统要求，仅输出一个 JSON 对象。
+# """.strip(),
+# )
+
 
 
 CFG = Cfg()
