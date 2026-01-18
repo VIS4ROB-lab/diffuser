@@ -159,7 +159,7 @@ class Cfg:
 
     # VLM (optional)
     vlm_api_url: str = os.getenv("VLM_API_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions")
-    vlm_api_key: str = os.getenv("VLM_API_KEY", "sk-6228c9778d7746a6946e6ba0fbc9b0ff")
+    vlm_api_key: str = os.getenv("VLM_API_KEY", "")
     vlm_model: str = os.getenv("VLM_MODEL", "qwen3-vl-plus-2025-12-19")
     vlm_system_prompt: str = os.getenv(
         "VLM_SYSTEM_PROMPT",
